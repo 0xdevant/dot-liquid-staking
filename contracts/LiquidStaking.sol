@@ -20,7 +20,12 @@ import "./libraries/DataTypes.sol";
  * holders who are still holding sDot or have held sDot before will be able to claim their remaining reward using `harvest`
  */
 
-contract LiquidStaking is Initializable, OwnableUpgradeable, PausableUpgradeable, ERC20Upgradeable {
+contract LiquidStaking is
+    Initializable,
+    OwnableUpgradeable,
+    PausableUpgradeable,
+    ERC20Upgradeable
+{
     error NotAllowZeroAddress();
     error NotAuthorizedToWithdraw();
     error NotEnoughSDotBalance();
@@ -102,7 +107,8 @@ contract LiquidStaking is Initializable, OwnableUpgradeable, PausableUpgradeable
     // Locks Dot and mints sDot
     function stake(uint256 _amount) external whenNotPaused {
         // times two because need to be bigger than total fee of both stake & unstake
-        if (_amount <= dotTransactionFee * 2) revert StakeAmountMustBeMoreThanTransactionFeeTwice();
+        if (_amount <= dotTransactionFee * 2)
+            revert StakeAmountMustBeMoreThanTransactionFeeTwice();
 
         uint256 _amountMinusFee = _amount - dotTransactionFee;
 
@@ -116,7 +122,9 @@ contract LiquidStaking is Initializable, OwnableUpgradeable, PausableUpgradeable
             // check if user already staked before this round's withdrawPendingBond to prevent excess unstake
             for (uint256 i = 0; i < pendingBondUsers.length; i++) {
                 if (pendingBondUsers[i].user == _msgSender()) {
-                    pendingBondUsers[i].amount = pendingBondUsers[i].amount + _amountMinusFee;
+                    pendingBondUsers[i].amount =
+                        pendingBondUsers[i].amount +
+                        _amountMinusFee;
                     hasUserStakedBefore = true;
                     break;
                 }
@@ -124,7 +132,8 @@ contract LiquidStaking is Initializable, OwnableUpgradeable, PausableUpgradeable
         }
 
         if (!hasUserStakedBefore) {
-            DataTypes.PendingBondUser memory pendingBondUser = DataTypes.PendingBondUser(_msgSender(), _amountMinusFee);
+            DataTypes.PendingBondUser memory pendingBondUser = DataTypes
+                .PendingBondUser(_msgSender(), _amountMinusFee);
             pendingBondUsers.push(pendingBondUser);
         }
 
@@ -143,7 +152,8 @@ contract LiquidStaking is Initializable, OwnableUpgradeable, PausableUpgradeable
 
     // Add up each user's pending unbonding amount and initiate unstake request for operator to withdraw, user will continue accrue sDot as long as they hold sDot on Astar
     function unstake(uint256 _amount) external {
-        if (_amount <= dotTransactionFee) revert UnstakeAmountMustBeMoreThanTransactionFee();
+        if (_amount <= dotTransactionFee)
+            revert UnstakeAmountMustBeMoreThanTransactionFee();
 
         // Only allow unstake when user has same or larger amount of sDot than unstake amount
         if (balanceOf(_msgSender()) < _amount) revert NotEnoughSDotBalance();
@@ -171,36 +181,60 @@ contract LiquidStaking is Initializable, OwnableUpgradeable, PausableUpgradeable
                     // user not unstaking all original pendingBond
                     if (_amount < pendingBondUsers[i].amount) {
                         // immediately subtract the amount of totalPendingBondAmount
-                        totalPendingBondAmount = totalPendingBondAmount - _amount;
-                        pendingBondUsers[i].amount = pendingBondUsers[i].amount - _amount;
+                        totalPendingBondAmount =
+                            totalPendingBondAmount -
+                            _amount;
+                        pendingBondUsers[i].amount =
+                            pendingBondUsers[i].amount -
+                            _amount;
                     } else if (_amount == pendingBondUsers[i].amount) {
                         // immediately subtract the amount of totalPendingBondAmount
-                        totalPendingBondAmount = totalPendingBondAmount - _amount;
+                        totalPendingBondAmount =
+                            totalPendingBondAmount -
+                            _amount;
                         // unstake amount equal to original pendingBond
-                        pendingBondUsers[i] = pendingBondUsers[pendingBondUsers.length - 1];
+                        pendingBondUsers[i] = pendingBondUsers[
+                            pendingBondUsers.length - 1
+                        ];
                         pendingBondUsers.pop();
                     } else if (_amount > pendingBondUsers[i].amount) {
                         // user unstaking more than original pendingBond amount after user buys sDot directly from market
                         // immediately subtract the amount of totalPendingBondAmount
-                        totalPendingBondAmount = totalPendingBondAmount - pendingBondUsers[i].amount;
+                        totalPendingBondAmount =
+                            totalPendingBondAmount -
+                            pendingBondUsers[i].amount;
 
-                        uint256 instantUnstakeAmount = pendingBondUsers[i].amount;
+                        uint256 instantUnstakeAmount = pendingBondUsers[i]
+                            .amount;
 
                         // remove user from pendingBond array(i.e. unstake instantly with the amount of user's all pendingBond)
-                        pendingBondUsers[i] = pendingBondUsers[pendingBondUsers.length - 1];
+                        pendingBondUsers[i] = pendingBondUsers[
+                            pendingBondUsers.length - 1
+                        ];
                         pendingBondUsers.pop();
 
                         // first calculate the amount for initiating the unstake after deducting the original pendingBond amount
-                        uint256 _amountMinusInstantUnstakeAmount = _amount - instantUnstakeAmount;
-                        user.pendingUnbondAmount = user.pendingUnbondAmount + _amountMinusInstantUnstakeAmount;
+                        uint256 _amountMinusInstantUnstakeAmount = _amount -
+                            instantUnstakeAmount;
+                        user.pendingUnbondAmount =
+                            user.pendingUnbondAmount +
+                            _amountMinusInstantUnstakeAmount;
 
                         // burn sDot 1:1 to the amount of dot withdrawal
                         _burn(_msgSender(), instantUnstakeAmount);
 
                         dot.transfer(_msgSender(), instantUnstakeAmount);
 
-                        emit InstantUnstaked(_msgSender(), instantUnstakeAmount, block.timestamp);
-                        emit Unstaked(_msgSender(), _amountMinusInstantUnstakeAmount, block.timestamp);
+                        emit InstantUnstaked(
+                            _msgSender(),
+                            instantUnstakeAmount,
+                            block.timestamp
+                        );
+                        emit Unstaked(
+                            _msgSender(),
+                            _amountMinusInstantUnstakeAmount,
+                            block.timestamp
+                        );
                         return;
                     }
 
@@ -209,7 +243,11 @@ contract LiquidStaking is Initializable, OwnableUpgradeable, PausableUpgradeable
 
                     dot.transfer(_msgSender(), _amount);
 
-                    emit InstantUnstaked(_msgSender(), _amount, block.timestamp);
+                    emit InstantUnstaked(
+                        _msgSender(),
+                        _amount,
+                        block.timestamp
+                    );
 
                     return;
                 }
@@ -236,7 +274,11 @@ contract LiquidStaking is Initializable, OwnableUpgradeable, PausableUpgradeable
 
         dot.transfer(_msgSender(), currClaimableUnbondedAmount);
 
-        emit ClaimedUnbond(_msgSender(), currClaimableUnbondedAmount, block.timestamp);
+        emit ClaimedUnbond(
+            _msgSender(),
+            currClaimableUnbondedAmount,
+            block.timestamp
+        );
     }
 
     // Harvest your ASTR reward.
@@ -274,14 +316,20 @@ contract LiquidStaking is Initializable, OwnableUpgradeable, PausableUpgradeable
     }
 
     // deposit unbonded DOTs to contract and let individual user who initiated unstake request be able to claim back DOTs
-    function depositUnbonded(address _user, uint256 _amount) external onlyOwner {
+    function depositUnbonded(
+        address _user,
+        uint256 _amount
+    ) external onlyOwner {
         DataTypes.UserInfo storage user = userInfo[_user];
-        if (user.pendingUnbondAmount != _amount) revert DepositAmountNotEqualPendingUnbondDot();
+        if (user.pendingUnbondAmount != _amount)
+            revert DepositAmountNotEqualPendingUnbondDot();
 
         uint256 _amountMinusFee = _amount - dotTransactionFee;
 
         user.pendingUnbondAmount = user.pendingUnbondAmount - _amount;
-        user.claimableUnbondedAmount = user.claimableUnbondedAmount + _amountMinusFee;
+        user.claimableUnbondedAmount =
+            user.claimableUnbondedAmount +
+            _amountMinusFee;
 
         dot.transferFrom(operator, address(this), _amountMinusFee);
         // send withdrawal fee from operator to feeCollector
@@ -340,7 +388,9 @@ contract LiquidStaking is Initializable, OwnableUpgradeable, PausableUpgradeable
      * @notice Remove a reward token
      * @param _rewardToken The address of the reward token
      */
-    function removeRewardToken(IERC20Upgradeable _rewardToken) external onlyOwner {
+    function removeRewardToken(
+        IERC20Upgradeable _rewardToken
+    ) external onlyOwner {
         if (!isRewardToken[_rewardToken]) revert RewardTokenNotExist();
 
         updateReward(_rewardToken);
@@ -382,17 +432,10 @@ contract LiquidStaking is Initializable, OwnableUpgradeable, PausableUpgradeable
     }
 
     /** Getters */
-    function getUserInfo(address _user, IERC20Upgradeable _rewardToken)
-        external
-        view
-        returns (
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            uint256
-        )
-    {
+    function getUserInfo(
+        address _user,
+        IERC20Upgradeable _rewardToken
+    ) external view returns (uint256, uint256, uint256, uint256, uint256) {
         DataTypes.UserInfo storage user = userInfo[_user];
         return (
             user.amount,
@@ -409,7 +452,10 @@ contract LiquidStaking is Initializable, OwnableUpgradeable, PausableUpgradeable
      * @param _token The address of the token
      * @return `_user`'s pending reward token
      */
-    function getPendingReward(address _user, IERC20Upgradeable _token) public view returns (uint256) {
+    function getPendingReward(
+        address _user,
+        IERC20Upgradeable _token
+    ) public view returns (uint256) {
         if (!isRewardToken[_token]) revert RewardTokenNotExist();
 
         DataTypes.UserInfo storage user = userInfo[_user];
@@ -420,11 +466,15 @@ contract LiquidStaking is Initializable, OwnableUpgradeable, PausableUpgradeable
         uint256 _accRewardTokenPerShare = accRewardPerShare[_token];
         uint256 _currRewardBalance = _token.balanceOf(address(this));
 
-        if (_currRewardBalance != lastRewardBalance[_token] && _totalSDot != 0) {
-            uint256 _accruedReward = _currRewardBalance - lastRewardBalance[_token];
+        if (
+            _currRewardBalance != lastRewardBalance[_token] && _totalSDot != 0
+        ) {
+            uint256 _accruedReward = _currRewardBalance -
+                lastRewardBalance[_token];
             _accRewardTokenPerShare =
                 _accRewardTokenPerShare +
-                ((_accruedReward * ACC_REWARD_PER_SHARE_PRECISION) / _totalSDot);
+                ((_accruedReward * ACC_REWARD_PER_SHARE_PRECISION) /
+                    _totalSDot);
         }
 
         return
@@ -459,7 +509,9 @@ contract LiquidStaking is Initializable, OwnableUpgradeable, PausableUpgradeable
         uint256 _rewardBalance = _currRewardBalance;
 
         if (_amount > _rewardBalance) {
-            lastRewardBalance[_token] = lastRewardBalance[_token] - _rewardBalance;
+            lastRewardBalance[_token] =
+                lastRewardBalance[_token] -
+                _rewardBalance;
             _token.safeTransfer(_to, _rewardBalance);
         } else {
             lastRewardBalance[_token] = lastRewardBalance[_token] - _amount;
@@ -492,12 +544,15 @@ contract LiquidStaking is Initializable, OwnableUpgradeable, PausableUpgradeable
                 updateReward(_token);
 
                 if (transfererSDotBalance != 0) {
-                    uint256 _transfererPending = (transfererSDotBalance * accRewardPerShare[_token]) /
+                    uint256 _transfererPending = (transfererSDotBalance *
+                        accRewardPerShare[_token]) /
                         ACC_REWARD_PER_SHARE_PRECISION -
                         transferer.rewardDebt[_token];
 
                     if (_transfererPending != 0) {
-                        transferer.unclaimedReward[_token] = transferer.unclaimedReward[_token] + _transfererPending;
+                        transferer.unclaimedReward[_token] =
+                            transferer.unclaimedReward[_token] +
+                            _transfererPending;
                     }
                 }
 
@@ -519,12 +574,15 @@ contract LiquidStaking is Initializable, OwnableUpgradeable, PausableUpgradeable
                 updateReward(_token);
 
                 if (transfereeSDotBalance != 0) {
-                    uint256 _transfereePending = (transfereeSDotBalance * accRewardPerShare[_token]) /
+                    uint256 _transfereePending = (transfereeSDotBalance *
+                        accRewardPerShare[_token]) /
                         ACC_REWARD_PER_SHARE_PRECISION -
                         transferee.rewardDebt[_token];
 
                     if (_transfereePending != 0) {
-                        transferee.unclaimedReward[_token] = transferee.unclaimedReward[_token] + _transfereePending;
+                        transferee.unclaimedReward[_token] =
+                            transferee.unclaimedReward[_token] +
+                            _transfereePending;
                     }
                 }
 
@@ -540,22 +598,41 @@ contract LiquidStaking is Initializable, OwnableUpgradeable, PausableUpgradeable
     event Staked(address indexed user, uint256 amount);
 
     /// @notice Emitted only when a user unstakes Dot instanly(i.e. without operator having withdrawn pending bond)
-    event InstantUnstaked(address indexed user, uint256 amount, uint256 timestamp);
+    event InstantUnstaked(
+        address indexed user,
+        uint256 amount,
+        uint256 timestamp
+    );
 
     /// @notice Emitted when a user unstakes Dot
     event Unstaked(address indexed user, uint256 amount, uint256 timestamp);
 
     /// @notice Emitted when a user claims back Dot after unbonding period ends
-    event ClaimedUnbond(address indexed user, uint256 amount, uint256 timestamp);
+    event ClaimedUnbond(
+        address indexed user,
+        uint256 amount,
+        uint256 timestamp
+    );
 
     /// @notice Emitted when a user harvests ASTR rewards
-    event Harvested(address indexed user, address indexed rewardToken, uint256 amount);
+    event Harvested(
+        address indexed user,
+        address indexed rewardToken,
+        uint256 amount
+    );
 
     /// @notice Emitted when operator withdraws all pending bond Dot from contract
-    event WithdrawedPendingBond(uint256 lastTotalPendingBondAmount, uint256 timestamp);
+    event WithdrawedPendingBond(
+        uint256 lastTotalPendingBondAmount,
+        uint256 timestamp
+    );
 
     /// @notice Emitted when operator deposits unbonded Dot to contract
-    event DepositedUnbonded(address indexed user, uint256 amount, uint256 timestamp);
+    event DepositedUnbonded(
+        address indexed user,
+        uint256 amount,
+        uint256 timestamp
+    );
 
     /// @notice Emitted when owner adds a token to the reward tokens list
     event RewardTokenAdded(address token);

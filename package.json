@@ -1,0 +1,46 @@
+{
+  "name": "dot-liquid-staking",
+  "description": "A contract that allows users on Astar to stake their Dot to receive 1:1 share of sDot in return.",
+  "scripts": {
+    "compile": "hardhat compile",
+    "build": "tsc -p ./tsconfig.build.json && copyfiles -u 1 typechain/**/*.d.ts dist/typechain",
+    "test": "hardhat test"
+  },
+  "author": "0xdevant",
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.5.0",
+    "@openzeppelin/contracts-upgradeable": "^4.8.3",
+    "dotenv": "^16.0.0"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
+    "@nomiclabs/hardhat-ethers": "^2.0.5",
+    "@nomiclabs/hardhat-etherscan": "^3.0.3",
+    "@nomiclabs/hardhat-waffle": "^2.0.3",
+    "@openzeppelin/test-helpers": "^0.5.15",
+    "@typechain/ethers-v5": "^10.2.0",
+    "@typechain/hardhat": "^6.1.5",
+    "@types/big.js": "^6.1.6",
+    "@types/chai": "^4.3.4",
+    "@types/lowdb": "^1.0.11",
+    "@types/luxon": "^3.3.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^18.15.12",
+    "@types/sinon-chai": "^3.2.9",
+    "@typescript-eslint/eslint-plugin": "^5.59.0",
+    "@typescript-eslint/parser": "^5.59.0",
+    "chai": "^4.3.6",
+    "chai-bignumber": "^3.1.0",
+    "copyfiles": "^2.4.1",
+    "ethereum-waffle": "^3.4.4",
+    "ethers": "^5.6.2",
+    "hardhat": "^2.9.2",
+    "hardhat-abi-exporter": "^2.10.1",
+    "hardhat-deploy": "^0.11.26",
+    "hardhat-gas-reporter": "^1.0.9",
+    "luxon": "^3.3.0",
+    "ts-node": "^10.9.1",
+    "typechain": "^8.1.1",
+    "typescript": "^5.0.4"
+  }
+}

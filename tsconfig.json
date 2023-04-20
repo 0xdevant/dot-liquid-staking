@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+      "baseUrl": ".",
+      "target": "es2019",
+      "module": "commonjs",
+      "strict": true,
+      "esModuleInterop": true,
+      "outDir": "dist",
+      "noImplicitAny": false,
+      "resolveJsonModule": true,
+      "useUnknownInCatchVariables": false,
+      "declaration": true
+    },
+    "include": ["./typechain", "./scripts", "./test", "./tasks", "./deployed", "./helpers", "./abis/**/*.json","./index.ts"],
+    "files": [
+      "./hardhat.config.ts",
+    ]
+  }

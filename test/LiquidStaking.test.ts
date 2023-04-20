@@ -5,7 +5,7 @@ import { BigNumber } from "ethers";
 import { ethers, network, upgrades } from "hardhat";
 import { LiquidStaking, MockXC20UpgradeableContract, MockERC20UpgradeableContract } from "typechain";
 import { constants, time } from "@openzeppelin/test-helpers";
-import { getBlockDateTime, setNextMineTimestamp } from "../../helpers/timeTravel";
+import { getBlockDateTime, setNextMineTimestamp } from "../helpers/timeTravel";
 
 const { ZERO_BYTES32 } = constants;
 
